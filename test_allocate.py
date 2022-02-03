@@ -1,8 +1,12 @@
-from datetime import date, timedelta
+from datetime import date
+from datetime import timedelta
 
 import pytest
 
-from model import Batch, OrderLine, OutOfStock, allocate
+from model import Batch
+from model import OrderLine
+from model import OutOfStock
+from model import allocate
 
 
 def test_prefers_current_stock_to_shipment():

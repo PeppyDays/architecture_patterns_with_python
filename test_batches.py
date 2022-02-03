@@ -1,6 +1,7 @@
 from datetime import date
 
-from model import Batch, OrderLine
+from model import Batch
+from model import OrderLine
 
 
 def make_batch_and_line(*, sku, batch_qty, line_qty):
