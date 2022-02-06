@@ -1,28 +1,11 @@
-from __future__ import annotations
-
 from dataclasses import dataclass
 from datetime import date
 from typing import Optional
 
 
-class OutOfStock(Exception):
-    pass
-
-
-def allocate(line: OrderLine, batches: list[Batch]) -> str:
-    try:
-        batch = next(b for b in sorted(batches) if b.can_allocate(line))
-    except StopIteration:
-        raise OutOfStock(f"The SKU ${line.sku} in order ${line.id} cannot be allocated due to out of stock")
-
-    batch.allocate(line)
-
-    return batch.ref
-
-
-@dataclass(frozen=True)
+@dataclass(unsafe_hash=True)
 class OrderLine:
-    id: str
+    order_id: str
     sku: str
     qty: int
 

@@ -3,10 +3,10 @@ from datetime import timedelta
 
 import pytest
 
-from model import Batch
-from model import OrderLine
-from model import OutOfStock
-from model import allocate
+from src.application.services import allocate
+from src.domain.exceptions import OutOfStock
+from src.domain.model.aggregates import Batch
+from src.domain.model.aggregates import OrderLine
 
 
 def test_prefers_current_stock_to_shipment():
@@ -17,7 +17,7 @@ def test_prefers_current_stock_to_shipment():
         qty=100,
         eta=date.today() + timedelta(days=1),
     )
-    line = OrderLine(id="order-1", sku="RETRO-CLOCK", qty=10)
+    line = OrderLine(order_id="order-1", sku="RETRO-CLOCK", qty=10)
 
     allocated_batch_ref = allocate(line, [in_stock_batch, shipment_batch])
 
@@ -40,7 +40,7 @@ def test_prefer_earlier_batch():
         qty=100,
         eta=date.today() + timedelta(days=7),
     )
-    line = OrderLine(id="order-1", sku="MINIMALIST_SPOON", qty=10)
+    line = OrderLine(order_id="order-1", sku="MINIMALIST_SPOON", qty=10)
 
     allocated_batch_ref = allocate(line, [earliest_batch, earlier_batch, later_batch])
 
@@ -52,9 +52,9 @@ def test_prefer_earlier_batch():
 
 def test_raises_out_of_stock_exception_if_cannot_allocate():
     batch = Batch(ref="batch-1", sku="SMALL-FORK", qty=10)
-    line_1 = OrderLine(id="order-1", sku="SMALL-FORK", qty=10)
+    line_1 = OrderLine(order_id="order-1", sku="SMALL-FORK", qty=10)
     allocate(line_1, [batch])
 
     with pytest.raises(OutOfStock, match="SMALL-FORK"):
-        line_2 = OrderLine(id="order-2", sku="SMALL-FORK", qty=1)
+        line_2 = OrderLine(order_id="order-2", sku="SMALL-FORK", qty=1)
         allocate(line_2, [batch])

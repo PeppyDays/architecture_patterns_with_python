@@ -1,13 +1,13 @@
 from datetime import date
 
-from model import Batch
-from model import OrderLine
+from src.domain.model.aggregates import Batch
+from src.domain.model.aggregates import OrderLine
 
 
 def make_batch_and_line(*, sku, batch_qty, line_qty):
     return (
         Batch(ref="batch-001", sku=sku, qty=batch_qty, eta=date.today()),
-        OrderLine(id="order-123", sku=sku, qty=line_qty),
+        OrderLine(order_id="order-123", sku=sku, qty=line_qty),
     )
 
 
@@ -34,7 +34,7 @@ def test_can_allocate_when_available_quantity_equal_to_line_quantity():
 
 def test_cannot_allocate_if_sku_do_not_match():
     batch = Batch(ref="batch-001", sku="UNCOMFORTABLE-CHAIR", qty=20)
-    line = OrderLine(id="order-ref", sku="COMFORTABLE-CHAIR", qty=2)
+    line = OrderLine(order_id="order-ref", sku="COMFORTABLE-CHAIR", qty=2)
     assert not batch.can_allocate(line)
 
 
