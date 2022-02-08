@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Session
 
-from src.domain.model.aggregates import Batch
-from src.domain.repositories import AbstractRepository
+from allocation.domain.model.aggregates import Batch
+from allocation.domain.repositories import Repository
 
 
-class SqlAlchemyRepository(AbstractRepository):
+class SqlAlchemyRepository(Repository):
     def __init__(self, session: Session):
         self.session = session
 

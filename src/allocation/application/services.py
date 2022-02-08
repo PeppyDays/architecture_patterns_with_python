@@ -1,6 +1,6 @@
-from src.domain.exceptions import OutOfStock
-from src.domain.model.aggregates import Batch
-from src.domain.model.aggregates import OrderLine
+from allocation.domain.exceptions import OutOfStock
+from allocation.domain.model.aggregates import Batch
+from allocation.domain.model.aggregates import OrderLine
 
 
 def allocate(line: OrderLine, batches: list[Batch]) -> str:

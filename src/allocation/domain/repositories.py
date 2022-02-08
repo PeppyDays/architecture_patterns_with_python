@@ -1,10 +1,10 @@
 from abc import ABC
 from abc import abstractmethod
 
-from src.domain.model.aggregates import Batch
+from allocation.domain.model.aggregates import Batch
 
 
-class AbstractRepository(ABC):
+class Repository(ABC):
     @abstractmethod
     def add(self, batch: Batch) -> str:
         raise NotImplementedError
