@@ -1,7 +1,7 @@
 from datetime import date
 
 from allocation.domain.model.aggregates import Batch
-from allocation.domain.model.aggregates import OrderLine
+from allocation.domain.model.value_objects import OrderLine
 
 
 def make_batch_and_line(*, sku, batch_qty, line_qty):

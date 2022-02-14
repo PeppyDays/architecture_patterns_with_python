@@ -1,13 +1,7 @@
-from dataclasses import dataclass
 from datetime import date
 from typing import Optional
 
-
-@dataclass(unsafe_hash=True)
-class OrderLine:
-    order_id: str
-    sku: str
-    qty: int
+from allocation.domain.model.value_objects import OrderLine
 
 
 class Batch:
@@ -67,3 +61,6 @@ class Batch:
             return True
 
         return self.eta > other.eta
+
+    def __hash__(self):
+        return hash(self.ref)

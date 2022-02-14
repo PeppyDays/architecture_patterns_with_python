@@ -7,62 +7,8 @@ from allocation import configuration
 
 
 @pytest.mark.usefixtures("restart_api")
-def test_400_message_for_out_of_stock(add_stock):
-    sku, small_batch, large_order_id = random_sku(), random_batch_ref(), random_order_id()
-    add_stock(
-        [
-            (small_batch, sku, 10, "2011-01-01"),
-        ]
-    )
-    data = {"order_id": large_order_id, "sku": sku, "qty": 20}
-    url = configuration.get_api_url()
-    r = requests.post(f"{url}/allocate", json=data)
-    assert r.status_code == 400
-    assert r.json()["message"] == f"Out of stock for SKU {sku}"
-
-
-@pytest.mark.usefixtures("restart_api")
-def test_400_message_for_invalid_sku():
-    unknown_sku, order_id = random_sku(), random_order_id()
-    data = {"order_id": order_id, "sku": unknown_sku, "qty": 20}
-    url = configuration.get_api_url()
-    r = requests.post(f"{url}/allocate", json=data)
-    assert r.status_code == 400
-    assert r.json()["message"] == f"Invalid SKU {unknown_sku}"
-
-
-@pytest.mark.usefixtures("restart_api")
-def test_allocations_are_persisted(add_stock):
-    sku = random_sku()
-    batch1, batch2 = random_batch_ref("1"), random_batch_ref("2")
-    order1, order2 = random_order_id("1"), random_order_id("2")
-    add_stock(
-        [
-            (batch1, sku, 10, "2011-01-01"),
-            (batch2, sku, 10, "2011-01-02"),
-        ]
-    )
-    line1 = {"order_id": order1, "sku": sku, "qty": 10}
-    line2 = {"order_id": order2, "sku": sku, "qty": 10}
-    url = configuration.get_api_url()
-
-    # first order uses up all stock in batch 1
-    r = requests.post(f"{url}/allocate", json=line1)
-    assert r.status_code == 201
-    assert r.json()["batch_ref"] == batch1
-
-    # second order should go to batch 2
-    r = requests.post(f"{url}/allocate", json=line2)
-    assert r.status_code == 201
-    assert r.json()["batch_ref"] == batch2
-
-
-@pytest.mark.usefixtures("restart_api")
-def test_api_returns_allocation(add_stock):
-    sku, other_sku = (
-        random_sku(),
-        random_sku("other"),
-    )
+def test_happy_path_returns_201_and_allocated_batch(add_stock):
+    sku, other_sku = random_sku(), random_sku("other")
     early_batch = random_batch_ref("1")
     later_batch = random_batch_ref("2")
     other_batch = random_batch_ref("3")
@@ -80,6 +26,16 @@ def test_api_returns_allocation(add_stock):
 
     assert r.status_code == 201
     assert r.json()["batch_ref"] == early_batch
+
+
+@pytest.mark.usefixtures("restart_api")
+def test_unhappy_path_returns_400_and_error_message():
+    unknown_sku, order_id = random_sku(), random_order_id()
+    data = {"order_id": order_id, "sku": unknown_sku, "qty": 20}
+    url = configuration.get_api_url()
+    r = requests.post(f"{url}/allocate", json=data)
+    assert r.status_code == 400
+    assert r.json()["message"] == f"Invalid SKU {unknown_sku}"
 
 
 def random_suffix():

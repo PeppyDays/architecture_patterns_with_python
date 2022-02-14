@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 import requests
+from psycopg2 import OperationalError
 from sqlalchemy import create_engine
 from sqlalchemy.orm import clear_mappers
 from sqlalchemy.orm import sessionmaker
@@ -26,11 +27,36 @@ def session(in_memory_db):
     clear_mappers()
 
 
+@pytest.fixture(scope="session")
+def postgres_db():
+    engine = create_engine(configuration.get_postgres_uri())
+    wait_for_postgres_to_come_up(engine)
+    mapper_registry.metadata.create_all(engine)
+    return engine
+
+
+@pytest.fixture
+def postgres_session(postgres_db):
+    start_mappers()
+    yield sessionmaker(bind=postgres_db)()
+    clear_mappers()
+
+
 @pytest.fixture
 def restart_api():
-    (Path(__file__).parent / "api.py").touch()
+    (Path(__file__).parent / "../src/allocation/flask_application.py").touch()
     time.sleep(0.5)
     wait_for_webapp_to_come_up()
+
+
+def wait_for_postgres_to_come_up(engine):
+    deadline = time.time() + 10
+    while time.time() < deadline:
+        try:
+            return engine.connect()
+        except OperationalError:
+            time.sleep(0.5)
+    pytest.fail("Postgres never came up")
 
 
 def wait_for_webapp_to_come_up():

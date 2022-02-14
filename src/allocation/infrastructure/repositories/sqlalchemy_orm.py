@@ -8,7 +8,7 @@ from sqlalchemy.orm import registry
 from sqlalchemy.orm import relationship
 
 from allocation.domain.model.aggregates import Batch
-from allocation.domain.model.aggregates import OrderLine
+from allocation.domain.model.value_objects import OrderLine
 
 mapper_registry = registry()
 

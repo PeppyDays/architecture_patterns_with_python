@@ -1,6 +1,9 @@
+import pytest
+
+from allocation.application.exceptions import InvalidSku
 from allocation.application.services import allocate
 from allocation.domain.model.aggregates import Batch
-from allocation.domain.model.aggregates import OrderLine
+from allocation.domain.model.value_objects import OrderLine
 from allocation.domain.repositories import Repository
 
 
@@ -33,3 +36,22 @@ def test_returns_allocation():
     repository = FakeRepository([batch])
     result = allocate(line, repository, FakeSession())
     assert result == "b1"
+
+
+def test_error_for_invalid_sku():
+    line = OrderLine("o1", "NONEXISTENTSKU", 10)
+    batch = Batch("b1", "AREALSKU", 100)
+    repository = FakeRepository([batch])
+
+    with pytest.raises(InvalidSku, match="Invalid SKU NONEXISTENTSKU"):
+        allocate(line, repository, FakeSession())
+
+
+def test_commit():
+    line = OrderLine("o1", "OMINOUS-MIRROR", 10)
+    batch = Batch("b1", "OMINOUS-MIRROR", 100)
+    repository = FakeRepository([batch])
+    session = FakeSession()
+
+    allocate(line, repository, session)
+    assert session.is_committed

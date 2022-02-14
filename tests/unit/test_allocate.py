@@ -3,10 +3,10 @@ from datetime import timedelta
 
 import pytest
 
-from allocation.application.services import allocate
+from allocation.domain.services import allocate
 from allocation.domain.exceptions import OutOfStock
 from allocation.domain.model.aggregates import Batch
-from allocation.domain.model.aggregates import OrderLine
+from allocation.domain.model.value_objects import OrderLine
 
 
 def test_prefers_current_stock_to_shipment():
