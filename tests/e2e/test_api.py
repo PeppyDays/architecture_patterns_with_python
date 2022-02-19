@@ -12,16 +12,12 @@ def test_happy_path_returns_201_and_allocated_batch(add_stock):
     early_batch = random_batch_ref("1")
     later_batch = random_batch_ref("2")
     other_batch = random_batch_ref("3")
-    add_stock(
-        [
-            (later_batch, sku, 100, "2011-01-02"),
-            (early_batch, sku, 100, "2011-01-01"),
-            (other_batch, other_sku, 100, None),
-        ]
-    )
+    post_to_add_batch(later_batch, sku, 100, "2011-01-02")
+    post_to_add_batch(early_batch, sku, 100, "2011-01-01")
+    post_to_add_batch(other_batch, other_sku, 100, None)
     data = {"order_id": random_order_id(), "sku": sku, "qty": 3}
-    url = configuration.get_api_url()
 
+    url = configuration.get_api_url()
     r = requests.post(f"{url}/allocate", json=data)
 
     assert r.status_code == 201
@@ -52,3 +48,11 @@ def random_batch_ref(name=""):
 
 def random_order_id(name=""):
     return f"order-{name}-{random_suffix()}"
+
+
+def post_to_add_batch(ref, sku, qty, eta):
+    url = configuration.get_api_url()
+    r = requests.post(
+        f"{url}/add_batch", json={"ref": ref, "sku": sku, "qty": qty, "eta": eta}
+    )
+    assert r.status_code == 201

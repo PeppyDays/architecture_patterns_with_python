@@ -1,7 +1,8 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
 from datetime import date
 from typing import Optional
-
-from allocation.domain.model.value_objects import OrderLine
 
 
 class Batch:
@@ -64,3 +65,10 @@ class Batch:
 
     def __hash__(self):
         return hash(self.ref)
+
+
+@dataclass(unsafe_hash=True)
+class OrderLine:
+    order_id: str
+    sku: str
+    qty: int

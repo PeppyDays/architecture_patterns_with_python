@@ -1,7 +1,7 @@
 from abc import ABC
 from abc import abstractmethod
 
-from allocation.domain.model.aggregates import Batch
+from allocation.domain.models import Batch
 
 
 class Repository(ABC):

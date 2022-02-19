@@ -1,7 +1,7 @@
 from datetime import date
 
-from allocation.domain.model.aggregates import Batch
-from allocation.domain.model.value_objects import OrderLine
+from allocation.domain.models import Batch
+from allocation.domain.models import OrderLine
 
 
 def test_order_line_mapper_can_load_lines(session):

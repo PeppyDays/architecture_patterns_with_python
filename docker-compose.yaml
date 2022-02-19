@@ -11,7 +11,7 @@ services:
       - DB_HOST=postgres
       - DB_PASSWORD=abc123
       - API_HOST=api
-      - FLASK_APP=allocation/flask_application.py
+      - FLASK_APP=allocation/interfaces/rest/api.py
       - FLASK_DEBUG=1
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1

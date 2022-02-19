@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from allocation.domain.model.aggregates import Batch
+from allocation.domain.models import Batch
 from allocation.domain.repositories import Repository
 
 
