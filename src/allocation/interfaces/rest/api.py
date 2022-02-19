@@ -8,9 +8,9 @@ from sqlalchemy.orm import sessionmaker
 from allocation import configuration
 from allocation.application import services
 from allocation.application.exceptions import InvalidSku
+from allocation.application.unit_of_work import SqlAlchemyUnitOfWork
 from allocation.domain.exceptions import OutOfStock
 from allocation.infrastructure.repositories import sqlalchemy_orm
-from allocation.infrastructure.repositories.sqlalchemy_repository import SqlAlchemyRepository
 
 sqlalchemy_orm.start_mappers()
 get_session = sessionmaker(bind=create_engine(configuration.get_postgres_uri()))
@@ -20,15 +20,13 @@ app = Flask(__name__)
 
 @app.route("/allocate", methods=["POST"])
 def allocate_endpoint():
-    session = get_session()
-    repository = SqlAlchemyRepository(session)
-
-    order_id = request.json["order_id"]
-    sku = request.json["sku"]
-    qty = request.json["qty"]
-
     try:
-        batch_ref = services.allocate(order_id, sku, qty, repository=repository, session=session)
+        batch_ref = services.allocate(
+            request.json["order_id"],
+            request.json["sku"],
+            request.json["qty"],
+            SqlAlchemyUnitOfWork(),
+        )
     except (OutOfStock, InvalidSku) as e:
         return {"message": str(e)}, 400
 
@@ -37,8 +35,6 @@ def allocate_endpoint():
 
 @app.route("/add_batch", methods=["POST"])
 def add_batch():
-    session = get_session()
-    repository = SqlAlchemyRepository(session)
     eta = request.json["eta"]
 
     if eta:
@@ -49,7 +45,7 @@ def add_batch():
         request.json["sku"],
         request.json["qty"],
         eta,
-        repository, session
+        SqlAlchemyUnitOfWork(),
     )
 
     return "OK", 201

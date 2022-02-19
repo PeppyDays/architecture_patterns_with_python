@@ -3,6 +3,7 @@ import pytest
 from allocation.application.exceptions import InvalidSku
 from allocation.application.services import add_batch
 from allocation.application.services import allocate
+from allocation.application.unit_of_work import UnitOfWork
 from allocation.domain.models import Batch
 from allocation.domain.repositories import Repository
 
@@ -22,57 +23,46 @@ class FakeRepository(Repository):
     def list(self):
         return list(self._batches)
 
-    @staticmethod
-    def for_batch(ref, sku, qty, eta=None):
-        return FakeRepository([Batch(ref, sku, qty, eta)])
 
+class FakeUnitOfWork(UnitOfWork):
+    batches: FakeRepository
+    is_committed: bool
 
-class FakeSession:
-    is_committed: bool = False
+    def __init__(self):
+        self.batches = FakeRepository([])
+        self.is_committed = False
 
     def commit(self):
         self.is_committed = True
 
-
-def test_returns_allocation():
-    repository = FakeRepository.for_batch(ref="b1", sku="COMPLICATED-LAMP", qty=100)
-    result = allocate("o1", "COMPLICATED-LAMP", 10, repository, FakeSession())
-    assert result == "b1"
-
-
-def test_error_for_invalid_sku():
-    repository = FakeRepository.for_batch("b1", "AREALSKU", 100)
-
-    with pytest.raises(InvalidSku, match="Invalid SKU NONEXISTENTSKU"):
-        allocate("o1", "NONEXISTENTSKU", 10, repository, FakeSession())
-
-
-def test_commit():
-    repository = FakeRepository.for_batch("b1", "OMINOUS-MIRROR", 100)
-    session = FakeSession()
-
-    allocate("o1", "OMINOUS-MIRROR", 10, repository, session)
-    assert session.is_committed
+    def rollback(self):
+        pass
 
 
 def test_add_batch():
-    repository, session = FakeRepository([]), FakeSession()
-    add_batch("b1", "CRUNCHY-ARMCHAIR", 100, None, repository, session)
-
-    assert repository.get("b1") is not None
-    assert session.is_committed
+    uow = FakeUnitOfWork()
+    add_batch("b1", "CRUNCHY-ARMCHAIR", 100, None, uow)
+    assert uow.batches.get("b1") is not None
+    assert uow.is_committed
 
 
 def test_allocate_returns_allocation():
-    repo, session = FakeRepository([]), FakeSession()
-    add_batch("batch1", "COMPLICATED-LAMP", 100, None, repo, session)
-    result = allocate("o1", "COMPLICATED-LAMP", 10, repo, session)
+    uow = FakeUnitOfWork()
+    add_batch("batch1", "COMPLICATED-LAMP", 100, None, uow)
+    result = allocate("o1", "COMPLICATED-LAMP", 10, uow)
     assert result == "batch1"
 
 
 def test_allocate_errors_for_invalid_sku():
-    repo, session = FakeRepository([]), FakeSession()
-    add_batch("b1", "AREALSKU", 100, None, repo, session)
+    uow = FakeUnitOfWork()
+    add_batch("b1", "AREALSKU", 100, None, uow)
 
     with pytest.raises(InvalidSku, match="Invalid SKU NONEXISTENTSKU"):
-        allocate("o1", "NONEXISTENTSKU", 10, repo, FakeSession())
+        allocate("o1", "NONEXISTENTSKU", 10, uow)
+
+
+def test_allocate_commits():
+    uow = FakeUnitOfWork()
+    add_batch("b1", "OMINOUS-MIRROR", 100, None, uow)
+    allocate("o1", "OMINOUS-MIRROR", 10, uow)
+    assert uow.is_committed
