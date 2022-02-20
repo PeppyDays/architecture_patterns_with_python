@@ -2,6 +2,7 @@ from typing import Callable
 from typing import Type
 
 from allocation.domain import events
+from allocation.infrastructure.services import email
 
 
 def handle(event: events.Event):
