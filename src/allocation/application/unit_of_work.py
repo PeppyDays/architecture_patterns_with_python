@@ -11,7 +11,6 @@ from allocation import configuration
 from allocation.domain.repositories import ProductRepository
 from allocation.infrastructure.repositories.repositories import ProductFakeRepository
 from allocation.infrastructure.repositories.repositories import ProductSqlAlchemyRepository
-from allocation.interfaces.events import message_bus
 
 
 class ProductUnitOfWork(ABC):
@@ -25,7 +24,6 @@ class ProductUnitOfWork(ABC):
 
     def commit(self):
         self._commit_data()
-        self._publish_events()
 
     def rollback(self):
         self._rollback_data()
@@ -38,11 +36,10 @@ class ProductUnitOfWork(ABC):
     def _rollback_data(self):
         raise NotImplementedError
 
-    def _publish_events(self):
+    def collect_new_events(self):
         for product in self.products.seen:
             while product.events:
-                event = product.events.pop(0)
-                message_bus.handle(event)
+                yield product.events.pop(0)
 
 
 DEFAULT_SESSION_FACTORY = sessionmaker(

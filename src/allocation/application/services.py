@@ -35,3 +35,10 @@ def add_batch(ref: str, sku: str, qty: int, eta: Optional[date], uow: ProductUni
             uow.products.add(product)
         product.batches.append(Batch(ref, sku, qty, eta))
         uow.commit()
+
+
+def change_batch_quantity(ref: str, qty: int, uow: ProductUnitOfWork):
+    with uow:
+        product = uow.products.get_by_batch_ref(batch_ref=ref)
+        product.change_batch_quantity(ref=ref, qty=qty)
+        uow.commit()
