@@ -9,7 +9,9 @@ from sqlalchemy.orm import sessionmaker
 
 from allocation import configuration
 from allocation.domain.repositories import ProductRepository
-from allocation.infrastructure.repositories.sqlalchemy_repository import ProductSqlAlchemyRepository
+from allocation.infrastructure.repositories.repositories import ProductFakeRepository
+from allocation.infrastructure.repositories.repositories import ProductSqlAlchemyRepository
+from allocation.interfaces.events import message_bus
 
 
 class ProductUnitOfWork(ABC):
@@ -21,13 +23,26 @@ class ProductUnitOfWork(ABC):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.rollback()
 
-    @abstractmethod
     def commit(self):
+        self._commit_data()
+        self._publish_events()
+
+    def rollback(self):
+        self._rollback_data()
+
+    @abstractmethod
+    def _commit_data(self):
         raise NotImplementedError
 
     @abstractmethod
-    def rollback(self):
+    def _rollback_data(self):
         raise NotImplementedError
+
+    def _publish_events(self):
+        for product in self.products.seen:
+            while product.events:
+                event = product.events.pop(0)
+                message_bus.handle(event)
 
 
 DEFAULT_SESSION_FACTORY = sessionmaker(
@@ -54,8 +69,23 @@ class ProductSqlAlchemyUnitOfWork(ProductUnitOfWork):
         super().__exit__(exc_type, exc_val, exc_tb)
         self.session.close()
 
-    def commit(self):
+    def _commit_data(self):
         self.session.commit()
 
-    def rollback(self):
+    def _rollback_data(self):
         self.session.rollback()
+
+
+class ProductFakeUnitOfWork(ProductUnitOfWork):
+    products: ProductFakeRepository
+    is_committed: bool
+
+    def __init__(self):
+        self.products = ProductFakeRepository([])
+        self.is_committed = False
+
+    def _commit_data(self):
+        self.is_committed = True
+
+    def _rollback_data(self):
+        pass

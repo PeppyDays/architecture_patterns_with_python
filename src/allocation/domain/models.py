@@ -4,18 +4,21 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Optional
 
-from allocation.domain.exceptions import OutOfStock
+from allocation.domain import events
+from allocation.domain.events import Event
 
 
 class Product:
     sku: str
     batches: list[Batch]
     version: int
+    events: list[Event]
 
     def __init__(self, sku: str, batches: list[Batch], version: int = 0):
         self.sku = sku
         self.batches = batches
         self.version = version
+        self.events = list()
 
     def allocate(self, line: OrderLine) -> str:
         try:
@@ -24,7 +27,8 @@ class Product:
             self.version += 1
             return batch.ref
         except StopIteration:
-            raise OutOfStock(f"Out of stack for SKU {line.sku}")
+            self.events.append(events.OutOfStock(line.sku))
+            # raise OutOfStock(f"Out of stack for SKU {line.sku}")
 
 
 class Batch:

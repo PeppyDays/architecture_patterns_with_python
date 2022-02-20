@@ -4,6 +4,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy import Table
+from sqlalchemy import event
 from sqlalchemy.orm import registry
 from sqlalchemy.orm import relationship
 
@@ -66,3 +67,8 @@ def start_mappers():
         products,
         properties={"batches": relationship(batches_mapper)},
     )
+
+
+@event.listens_for(Product, "load")
+def receive_load(product, _):
+    product.events = []

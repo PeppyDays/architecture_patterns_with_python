@@ -3,40 +3,7 @@ import pytest
 from allocation.application.exceptions import InvalidSku
 from allocation.application.services import add_batch
 from allocation.application.services import allocate
-from allocation.application.unit_of_work import ProductUnitOfWork
-from allocation.domain.models import Product
-from allocation.domain.repositories import ProductRepository
-
-
-class ProductFakeRepository(ProductRepository):
-    _products: set[Product]
-
-    def __init__(self, products):
-        self._products = set(products)
-
-    def add(self, product):
-        self._products.add(product)
-
-    def get(self, sku):
-        try:
-            return next(p for p in self._products if p.sku == sku)
-        except StopIteration:
-            return None
-
-
-class ProductFakeUnitOfWork(ProductUnitOfWork):
-    products: ProductFakeRepository
-    is_committed: bool
-
-    def __init__(self):
-        self.products = ProductFakeRepository([])
-        self.is_committed = False
-
-    def commit(self):
-        self.is_committed = True
-
-    def rollback(self):
-        pass
+from allocation.application.unit_of_work import ProductFakeUnitOfWork
 
 
 def test_add_batch():

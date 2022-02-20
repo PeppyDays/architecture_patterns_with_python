@@ -3,6 +3,7 @@ from datetime import timedelta
 
 import pytest
 
+from allocation.domain import events
 from allocation.domain.exceptions import OutOfStock
 from allocation.domain.models import Batch
 from allocation.domain.models import OrderLine
@@ -59,11 +60,12 @@ def test_prefer_earlier_batch():
     assert later_batch.available_qty == 100
 
 
-def test_raises_out_of_stock_exception_if_cannot_allocate():
+def test_emits_out_of_stock_event_if_cannot_allocate():
     product = Product("SMALL-FORK", [Batch(ref="batch-1", sku="SMALL-FORK", qty=10)])
     line_1 = OrderLine(order_id="order-1", sku="SMALL-FORK", qty=10)
     product.allocate(line_1)
 
-    with pytest.raises(OutOfStock, match="SMALL-FORK"):
-        line_2 = OrderLine(order_id="order-2", sku="SMALL-FORK", qty=1)
-        product.allocate(line_2)
+    line_2 = OrderLine(order_id="order-2", sku="SMALL-FORK", qty=1)
+    product.allocate(line_2)
+
+    assert product.events == [events.OutOfStock(sku="SMALL-FORK")]

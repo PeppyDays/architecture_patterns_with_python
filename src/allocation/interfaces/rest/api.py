@@ -10,9 +10,9 @@ from allocation.application import services
 from allocation.application.exceptions import InvalidSku
 from allocation.application.unit_of_work import ProductSqlAlchemyUnitOfWork
 from allocation.domain.exceptions import OutOfStock
-from allocation.infrastructure.repositories import sqlalchemy_orm
+from allocation.infrastructure.repositories import orm
 
-sqlalchemy_orm.start_mappers()
+orm.start_mappers()
 get_session = sessionmaker(bind=create_engine(configuration.get_postgres_uri()))
 
 app = Flask(__name__)

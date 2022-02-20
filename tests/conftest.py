@@ -9,8 +9,8 @@ from sqlalchemy.orm import clear_mappers
 from sqlalchemy.orm import sessionmaker
 
 from allocation import configuration
-from allocation.infrastructure.repositories.sqlalchemy_orm import mapper_registry
-from allocation.infrastructure.repositories.sqlalchemy_orm import start_mappers
+from allocation.infrastructure.repositories.orm import mapper_registry
+from allocation.infrastructure.repositories.orm import start_mappers
 
 
 @pytest.fixture
