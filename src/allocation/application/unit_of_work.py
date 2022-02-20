@@ -1,18 +1,21 @@
+from __future__ import annotations
+
 from abc import ABC
 from abc import abstractmethod
 
 from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
 
 from allocation import configuration
-from allocation.domain.repositories import Repository
-from allocation.infrastructure.repositories.sqlalchemy_repository import SqlAlchemyRepository
+from allocation.domain.repositories import ProductRepository
+from allocation.infrastructure.repositories.sqlalchemy_repository import ProductSqlAlchemyRepository
 
 
-class UnitOfWork(ABC):
-    batches: Repository
+class ProductUnitOfWork(ABC):
+    products: ProductRepository
 
-    def __enter__(self):
+    def __enter__(self) -> ProductUnitOfWork:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -27,17 +30,25 @@ class UnitOfWork(ABC):
         raise NotImplementedError
 
 
-DEFAULT_SESSION_FACTORY = sessionmaker(bind=create_engine(configuration.get_postgres_uri()))
+DEFAULT_SESSION_FACTORY = sessionmaker(
+    bind=create_engine(
+        configuration.get_postgres_uri(),
+        isolation_level="REPEATABLE READ",
+    )
+)
 
 
-class SqlAlchemyUnitOfWork(UnitOfWork):
+class ProductSqlAlchemyUnitOfWork(ProductUnitOfWork):
+    session: Session
+    products: ProductSqlAlchemyRepository
+
     def __init__(self, session_factory=DEFAULT_SESSION_FACTORY):
         self.session_factory = session_factory
 
-    def __enter__(self):
+    def __enter__(self) -> ProductSqlAlchemyUnitOfWork:
         self.session = self.session_factory()
-        self.batches = SqlAlchemyRepository(self.session)
-        return super().__enter__()
+        self.products = ProductSqlAlchemyRepository(self.session)
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         super().__exit__(exc_type, exc_val, exc_tb)

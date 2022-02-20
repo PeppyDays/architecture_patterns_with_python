@@ -3,27 +3,32 @@ from datetime import timedelta
 
 import pytest
 
-from allocation.domain.services import allocate
 from allocation.domain.exceptions import OutOfStock
 from allocation.domain.models import Batch
 from allocation.domain.models import OrderLine
+from allocation.domain.models import Product
 
 
 def test_prefers_current_stock_to_shipment():
-    in_stock_batch = Batch(ref="in-stock-batch", sku="RETRO-CLOCK", qty=100)
-    shipment_batch = Batch(
-        ref="in-stock-batch",
-        sku="RETRO-CLOCK",
-        qty=100,
-        eta=date.today() + timedelta(days=1),
+    product = Product(
+        "RETRO-CLOCK",
+        [
+            Batch(ref="in-stock-batch", sku="RETRO-CLOCK", qty=100),
+            Batch(
+                ref="in-stock-batch",
+                sku="RETRO-CLOCK",
+                qty=100,
+                eta=date.today() + timedelta(days=1),
+            )
+        ]
     )
     line = OrderLine(order_id="order-1", sku="RETRO-CLOCK", qty=10)
 
-    allocated_batch_ref = allocate(line, [in_stock_batch, shipment_batch])
+    allocated_batch_ref = product.allocate(line)
 
-    assert allocated_batch_ref == in_stock_batch.ref
-    assert in_stock_batch.available_qty == 90
-    assert shipment_batch.available_qty == 100
+    assert allocated_batch_ref == "in-stock-batch"
+    assert product.batches[0].available_qty == 90
+    assert product.batches[1].available_qty == 100
 
 
 def test_prefer_earlier_batch():
@@ -40,9 +45,13 @@ def test_prefer_earlier_batch():
         qty=100,
         eta=date.today() + timedelta(days=7),
     )
+    product = Product(
+        "MINIMALIST_SPOON",
+        [earliest_batch, earlier_batch, later_batch]
+    )
     line = OrderLine(order_id="order-1", sku="MINIMALIST_SPOON", qty=10)
 
-    allocated_batch_ref = allocate(line, [earliest_batch, earlier_batch, later_batch])
+    allocated_batch_ref = product.allocate(line)
 
     assert allocated_batch_ref == earliest_batch.ref
     assert earliest_batch.available_qty == 90
@@ -51,10 +60,10 @@ def test_prefer_earlier_batch():
 
 
 def test_raises_out_of_stock_exception_if_cannot_allocate():
-    batch = Batch(ref="batch-1", sku="SMALL-FORK", qty=10)
+    product = Product("SMALL-FORK", [Batch(ref="batch-1", sku="SMALL-FORK", qty=10)])
     line_1 = OrderLine(order_id="order-1", sku="SMALL-FORK", qty=10)
-    allocate(line_1, [batch])
+    product.allocate(line_1)
 
     with pytest.raises(OutOfStock, match="SMALL-FORK"):
         line_2 = OrderLine(order_id="order-2", sku="SMALL-FORK", qty=1)
-        allocate(line_2, [batch])
+        product.allocate(line_2)

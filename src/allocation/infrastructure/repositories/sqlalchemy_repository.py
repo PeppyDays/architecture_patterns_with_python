@@ -1,19 +1,16 @@
 from sqlalchemy.orm import Session
 
-from allocation.domain.models import Batch
-from allocation.domain.repositories import Repository
+from allocation.domain.models import Product
+from allocation.domain.repositories import ProductRepository
 
 
-class SqlAlchemyRepository(Repository):
+class ProductSqlAlchemyRepository(ProductRepository):
     def __init__(self, session: Session):
         self.session = session
 
-    def add(self, batch: Batch) -> str:
-        self.session.add(batch)
-        return Batch.ref
+    def add(self, product: Product):
+        self.session.add(product)
 
-    def get(self, ref: str) -> Batch:
-        return self.session.query(Batch).filter_by(ref=ref).one()
-
-    def list(self) -> list[Batch]:
-        return self.session.query(Batch).all()
+    def get(self, sku: str) -> Product:
+        return self.session.query(Product).filter_by(sku=sku).first()
+        # return self.session.query(Product).filter_by(sku=sku).with_for_update().first()

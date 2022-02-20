@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from allocation import configuration
 from allocation.application import services
 from allocation.application.exceptions import InvalidSku
-from allocation.application.unit_of_work import SqlAlchemyUnitOfWork
+from allocation.application.unit_of_work import ProductSqlAlchemyUnitOfWork
 from allocation.domain.exceptions import OutOfStock
 from allocation.infrastructure.repositories import sqlalchemy_orm
 
@@ -25,7 +25,7 @@ def allocate_endpoint():
             request.json["order_id"],
             request.json["sku"],
             request.json["qty"],
-            SqlAlchemyUnitOfWork(),
+            ProductSqlAlchemyUnitOfWork(),
         )
     except (OutOfStock, InvalidSku) as e:
         return {"message": str(e)}, 400
@@ -45,7 +45,7 @@ def add_batch():
         request.json["sku"],
         request.json["qty"],
         eta,
-        SqlAlchemyUnitOfWork(),
+        ProductSqlAlchemyUnitOfWork(),
     )
 
     return "OK", 201

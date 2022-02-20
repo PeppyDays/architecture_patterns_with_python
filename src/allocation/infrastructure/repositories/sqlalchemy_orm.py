@@ -9,6 +9,7 @@ from sqlalchemy.orm import relationship
 
 from allocation.domain.models import Batch
 from allocation.domain.models import OrderLine
+from allocation.domain.models import Product
 
 mapper_registry = registry()
 
@@ -21,12 +22,19 @@ order_lines = Table(
     Column("qty", Integer, nullable=False),
 )
 
+products = Table(
+    "products",
+    mapper_registry.metadata,
+    Column("sku", String(255), primary_key=True),
+    Column("version", Integer, nullable=False, server_default="0"),
+)
+
 batches = Table(
     "batches",
     mapper_registry.metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
     Column("ref", String(255)),
-    Column("sku", String(255)),
+    Column("sku", ForeignKey("products.sku")),
     Column("eta", Date, nullable=True),
     Column("purchased_qty", Integer, nullable=False),
 )
@@ -42,7 +50,7 @@ allocations = Table(
 
 def start_mappers():
     lines_mapper = mapper_registry.map_imperatively(OrderLine, order_lines)
-    mapper_registry.map_imperatively(
+    batches_mapper = mapper_registry.map_imperatively(
         Batch,
         batches,
         properties={
@@ -52,4 +60,9 @@ def start_mappers():
                 collection_class=set,
             )
         },
+    )
+    mapper_registry.map_imperatively(
+        Product,
+        products,
+        properties={"batches": relationship(batches_mapper)},
     )
