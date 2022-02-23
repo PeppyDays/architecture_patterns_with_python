@@ -65,4 +65,4 @@ def test_emits_out_of_stock_event_if_cannot_allocate():
     line_2 = OrderLine(order_id="order-2", sku="SMALL-FORK", qty=1)
     product.allocate(line_2)
 
-    assert product.messages == [events.OutOfStock(sku="SMALL-FORK")]
+    assert events.OutOfStock(sku="SMALL-FORK") in product.messages

@@ -8,7 +8,6 @@ from typing import Union
 from allocation.domain import commands
 from allocation.domain import events
 
-
 Message = Union[events.Event, commands.Command]
 
 
@@ -29,6 +28,14 @@ class Product:
             batch = next(b for b in sorted(self.batches) if b.can_allocate(line))
             batch.allocate(line)
             self.version += 1
+            self.messages.append(
+                events.Allocated(
+                    order_id=line.order_id,
+                    sku=line.sku,
+                    qty=line.qty,
+                    batch_ref=batch.ref,
+                )
+            )
             return batch.ref
         except StopIteration:
             self.messages.append(events.OutOfStock(line.sku))

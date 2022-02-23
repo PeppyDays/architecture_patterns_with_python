@@ -65,6 +65,7 @@ def handle_command(command: commands.Command, queue: list[Message], uow: Product
 
 EVENT_HANDLERS: dict[Type[events.Event], list[Callable]] = {
     events.OutOfStock: [event_handlers.send_out_of_stock_notification],
+    events.Allocated: [event_handlers.publish_allocated_event],
 }
 
 COMMAND_HANDLERS: dict[Type[commands.Command], Callable] = {
