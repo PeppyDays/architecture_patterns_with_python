@@ -6,6 +6,7 @@ import requests
 from allocation import configuration
 
 
+@pytest.mark.usefixtures("postgres_db")
 @pytest.mark.usefixtures("restart_api")
 def test_happy_path_returns_201_and_allocated_batch(add_stock):
     sku, other_sku = random_sku(), random_sku("other")
@@ -24,6 +25,7 @@ def test_happy_path_returns_201_and_allocated_batch(add_stock):
     assert r.json()["batch_ref"] == early_batch
 
 
+@pytest.mark.usefixtures("postgres_db")
 @pytest.mark.usefixtures("restart_api")
 def test_unhappy_path_returns_400_and_error_message():
     unknown_sku, order_id = random_sku(), random_order_id()

@@ -1,2 +1,2 @@
-def send_mail(email: str, message: str):
+def send(email: str, message: str):
     print(email, message)

@@ -1,10 +1,7 @@
 from datetime import date
 from datetime import timedelta
 
-import pytest
-
 from allocation.domain import events
-from allocation.domain.exceptions import OutOfStock
 from allocation.domain.models import Batch
 from allocation.domain.models import OrderLine
 from allocation.domain.models import Product
@@ -68,4 +65,4 @@ def test_emits_out_of_stock_event_if_cannot_allocate():
     line_2 = OrderLine(order_id="order-2", sku="SMALL-FORK", qty=1)
     product.allocate(line_2)
 
-    assert product.events == [events.OutOfStock(sku="SMALL-FORK")]
+    assert product.messages == [events.OutOfStock(sku="SMALL-FORK")]

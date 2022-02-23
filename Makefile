@@ -7,10 +7,10 @@ build:
 	docker compose build
 
 up:
-	docker compose -p allocation up -d
+	docker compose up -d
 
 down:
-	docker compose -p allocation down --remove-orphans
+	docker compose down --remove-orphans
 
 test:
 	pytest --tb=short
@@ -22,10 +22,10 @@ integration-test:
 	pytest --tb=short tests/integration
 
 e2e-test:
-	pytest --tb=short tests/integration
+	pytest --tb=short tests/e2e
 
 logs:
-	docker compose -p allocation logs api | tail -100
+	docker compose logs api | tail -100
 
 black:
 	black $$(find * -name '*.py')
