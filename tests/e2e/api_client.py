@@ -9,12 +9,12 @@ def post_to_add_batch(ref, sku, qty, eta):
     assert r.status_code == 201
 
 
-def post_to_allocate(orderid, sku, qty, expect_success=True):
+def post_to_allocate(order_id, sku, qty, expect_success=True):
     url = configuration.get_api_url()
     r = requests.post(
         f"{url}/allocate",
         json={
-            "orderid": orderid,
+            "orderid": order_id,
             "sku": sku,
             "qty": qty,
         },
@@ -22,3 +22,7 @@ def post_to_allocate(orderid, sku, qty, expect_success=True):
     if expect_success:
         assert r.status_code == 201
     return r
+
+
+def get_allocation():
+    pass

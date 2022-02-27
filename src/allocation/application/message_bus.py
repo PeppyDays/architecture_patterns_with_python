@@ -9,7 +9,7 @@ from tenacity import wait_exponential
 
 from allocation.application.services import command_services
 from allocation.application.services import event_handlers
-from allocation.application.unit_of_work import ProductUnitOfWork
+from allocation.application.unit_of_work import UnitOfWork
 from allocation.domain import commands
 from allocation.domain import events
 from allocation.domain.models import Message
@@ -17,8 +17,7 @@ from allocation.domain.models import Message
 logger = logging.getLogger(__name__)
 
 
-def handle(message: Message, uow: ProductUnitOfWork):
-    results = []
+def handle(message: Message, uow: UnitOfWork):
     queue = [message]
 
     while queue:
@@ -27,15 +26,12 @@ def handle(message: Message, uow: ProductUnitOfWork):
         if isinstance(message, events.Event):
             handle_event(message, queue, uow)
         elif isinstance(message, commands.Command):
-            cmd_result = handle_command(message, queue, uow)
-            results.append(cmd_result)
+            handle_command(message, queue, uow)
         else:
             raise Exception(f"{message} was not an Event or Command")
 
-    return results
 
-
-def handle_event(event: events.Event, queue: list[Message], uow: ProductUnitOfWork):
+def handle_event(event: events.Event, queue: list[Message], uow: UnitOfWork):
     for handler in EVENT_HANDLERS[type(event)]:
         try:
             for attempt in Retrying(stop=stop_after_attempt(3), wait=wait_exponential()):
@@ -51,13 +47,12 @@ def handle_event(event: events.Event, queue: list[Message], uow: ProductUnitOfWo
             continue
 
 
-def handle_command(command: commands.Command, queue: list[Message], uow: ProductUnitOfWork):
+def handle_command(command: commands.Command, queue: list[Message], uow: UnitOfWork):
     logger.debug(f"handling command {command}")
     try:
         handler = COMMAND_HANDLERS[type(command)]
-        result = handler(command, uow)
+        handler(command, uow)
         queue.extend(uow.collect_new_messages())
-        return result
     except Exception:
         logger.exception(f"exception handling command {command}")
         raise
@@ -72,4 +67,5 @@ COMMAND_HANDLERS: dict[Type[commands.Command], Callable] = {
     commands.Allocate: command_services.allocate,
     commands.CreateBatch: command_services.add_batch,
     commands.ChangeBatchQuantity: command_services.change_batch_quantity,
+    commands.AddAllocationView: command_services.add_allocation_view,
 }

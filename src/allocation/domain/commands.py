@@ -3,6 +3,7 @@ from datetime import date
 from typing import Optional
 
 
+@dataclass
 class Command:
     pass
 
@@ -26,3 +27,10 @@ class CreateBatch(Command):
 class ChangeBatchQuantity(Command):
     ref: str
     qty: int
+
+
+@dataclass
+class AddAllocationView(Command):
+    order_id: str
+    sku: str
+    batch_ref: str

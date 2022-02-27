@@ -8,6 +8,7 @@ from sqlalchemy import event
 from sqlalchemy.orm import registry
 from sqlalchemy.orm import relationship
 
+from allocation.domain.models import AllocationView
 from allocation.domain.models import Batch
 from allocation.domain.models import OrderLine
 from allocation.domain.models import Product
@@ -48,6 +49,15 @@ allocations = Table(
     Column("batch_id", ForeignKey("batches.id")),
 )
 
+allocations_view = Table(
+    "allocations_view",
+    mapper_registry.metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("order_id", String(255)),
+    Column("sku", String(255)),
+    Column("batch_ref", String(255)),
+)
+
 
 def start_mappers():
     lines_mapper = mapper_registry.map_imperatively(OrderLine, order_lines)
@@ -67,6 +77,7 @@ def start_mappers():
         products,
         properties={"batches": relationship(batches_mapper)},
     )
+    mapper_registry.map_imperatively(AllocationView, allocations_view)
 
 
 @event.listens_for(Product, "load")

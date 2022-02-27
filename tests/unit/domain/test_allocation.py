@@ -17,8 +17,8 @@ def test_prefers_current_stock_to_shipment():
                 sku="RETRO-CLOCK",
                 qty=100,
                 eta=date.today() + timedelta(days=1),
-            )
-        ]
+            ),
+        ],
     )
     line = OrderLine(order_id="order-1", sku="RETRO-CLOCK", qty=10)
 
@@ -43,10 +43,7 @@ def test_prefer_earlier_batch():
         qty=100,
         eta=date.today() + timedelta(days=7),
     )
-    product = Product(
-        "MINIMALIST_SPOON",
-        [earliest_batch, earlier_batch, later_batch]
-    )
+    product = Product("MINIMALIST_SPOON", [earliest_batch, earlier_batch, later_batch])
     line = OrderLine(order_id="order-1", sku="MINIMALIST_SPOON", qty=10)
 
     allocated_batch_ref = product.allocate(line)

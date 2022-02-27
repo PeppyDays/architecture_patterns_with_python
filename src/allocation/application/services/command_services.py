@@ -1,6 +1,8 @@
 from allocation.application.exceptions import InvalidSku
+from allocation.application.unit_of_work import AllocationViewUnitOfWork
 from allocation.application.unit_of_work import ProductUnitOfWork
 from allocation.domain import commands
+from allocation.domain.models import AllocationView
 from allocation.domain.models import Batch
 from allocation.domain.models import OrderLine
 from allocation.domain.models import Product
@@ -39,4 +41,16 @@ def change_batch_quantity(command: commands.ChangeBatchQuantity, uow: ProductUni
     with uow:
         product = uow.products.get_by_batch_ref(batch_ref=command.ref)
         product.change_batch_quantity(ref=command.ref, qty=command.qty)
+        uow.commit()
+
+
+def add_allocation_view(command: commands.AddAllocationView, uow: AllocationViewUnitOfWork):
+    with uow:
+        uow.allocations_view.add(
+            AllocationView(
+                order_id=command.order_id,
+                sku=command.sku,
+                batch_ref=command.batch_ref
+            )
+        )
         uow.commit()

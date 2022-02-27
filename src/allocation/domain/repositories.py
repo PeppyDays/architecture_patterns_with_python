@@ -2,6 +2,7 @@ from abc import ABC
 from abc import abstractmethod
 from typing import Optional
 
+from allocation.domain.models import AllocationView
 from allocation.domain.models import Product
 
 
@@ -37,4 +38,17 @@ class ProductRepository(ABC):
 
     @abstractmethod
     def _get_by_batch_ref(self, batch_ref: str) -> Product:
+        raise NotImplementedError
+
+
+class AllocationViewRepository(ABC):
+    def __init__(self):
+        pass
+
+    @abstractmethod
+    def add(self, allocation_view: AllocationView):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_by_order_id(self, order_id: str) -> list[AllocationView]:
         raise NotImplementedError

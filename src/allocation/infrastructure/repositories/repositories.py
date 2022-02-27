@@ -2,13 +2,17 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
+from allocation.domain.models import AllocationView
 from allocation.domain.models import Batch
 from allocation.domain.models import Product
+from allocation.domain.repositories import AllocationViewRepository
 from allocation.domain.repositories import ProductRepository
 from allocation.infrastructure.repositories import orm
 
 
 class ProductSqlAlchemyRepository(ProductRepository):
+    session: Session
+
     def __init__(self, session: Session):
         super().__init__()
         self.session = session
@@ -21,13 +25,7 @@ class ProductSqlAlchemyRepository(ProductRepository):
         # return self.session.query(Product).filter_by(sku=sku).with_for_update().first()
 
     def _get_by_batch_ref(self, batch_ref: str) -> Product:
-        return (
-            self.session
-                .query(Product)
-                .join(Batch)
-                .filter(orm.batches.c.ref == batch_ref)
-                .first()
-        )
+        return self.session.query(Product).join(Batch).filter(orm.batches.c.ref == batch_ref).first()
 
 
 class ProductFakeRepository(ProductRepository):
@@ -45,3 +43,17 @@ class ProductFakeRepository(ProductRepository):
 
     def _get_by_batch_ref(self, batch_ref: str) -> Product:
         return next((p for p in self._products for b in p.batches if b.ref == batch_ref), None)
+
+
+class AllocationViewSqlAlchemyRepository(AllocationViewRepository):
+    session: Session
+
+    def __init__(self, session: Session):
+        super().__init__()
+        self.session = session
+
+    def add(self, allocation_view: AllocationView):
+        self.session.add(allocation_view)
+
+    def get_by_order_id(self, order_id: str) -> list[AllocationView]:
+        return self.session.query(AllocationView).filter_by(order_id=order_id).all()

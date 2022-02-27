@@ -119,3 +119,10 @@ class OrderLine:
     order_id: str
     sku: str
     qty: int
+
+
+@dataclass
+class AllocationView:
+    order_id: str
+    sku: str
+    batch_ref: str

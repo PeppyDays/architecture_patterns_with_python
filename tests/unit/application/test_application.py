@@ -51,25 +51,17 @@ class TestAllocate:
 
         with mock.patch("allocation.infrastructure.services.email.send") as mock_send_mail:
             message_bus.handle(commands.Allocate("o1", "POPULAR-CURTAINS", 10), uow)
-            assert mock_send_mail.call_args == mock.call(
-                "stock@made.com", f"Out of stock for SKU POPULAR-CURTAINS"
-            )
+            assert mock_send_mail.call_args == mock.call("stock@made.com", f"Out of stock for SKU POPULAR-CURTAINS")
 
 
 class TestChangeBatchQuantity:
     def test_changes_available_quantity(self):
         uow = ProductFakeUnitOfWork()
-        message_bus.handle(
-            commands.CreateBatch("batch-1", "ADORABLE-SETTEE", 100),
-            uow
-        )
+        message_bus.handle(commands.CreateBatch("batch-1", "ADORABLE-SETTEE", 100), uow)
         [batch] = uow.products.get(sku="ADORABLE-SETTEE").batches
         assert batch.available_qty == 100
 
-        message_bus.handle(
-            commands.ChangeBatchQuantity("batch-1", 50),
-            uow
-        )
+        message_bus.handle(commands.ChangeBatchQuantity("batch-1", 50), uow)
         assert batch.available_qty == 50
 
     def test_reallocates_if_needed(self):
@@ -87,9 +79,6 @@ class TestChangeBatchQuantity:
         assert batch_1.available_qty == 10
         assert batch_2.available_qty == 50
 
-        message_bus.handle(
-            commands.ChangeBatchQuantity("batch-1", 25),
-            uow
-        )
+        message_bus.handle(commands.ChangeBatchQuantity("batch-1", 25), uow)
         assert batch_1.available_qty == 5
         assert batch_2.available_qty == 30

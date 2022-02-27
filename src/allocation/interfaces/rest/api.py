@@ -1,10 +1,13 @@
 from datetime import datetime
 
 from flask import Flask
+from flask import jsonify
 from flask import request
 
 from allocation.application import message_bus
 from allocation.application.exceptions import InvalidSku
+from allocation.application.services import query_services
+from allocation.application.unit_of_work import AllocationViewSqlAlchemyUnitOfWork
 from allocation.application.unit_of_work import ProductSqlAlchemyUnitOfWork
 from allocation.domain import commands
 from allocation.infrastructure.repositories import orm
@@ -43,6 +46,16 @@ def allocate():
         return {"message": str(e)}, 400
 
     return {"batch_ref": batch_ref}, 201
+
+
+@app.route("/allocations/<order_id>", methods=["GET"])
+def allocations_view(order_id):
+    uow = AllocationViewSqlAlchemyUnitOfWork()
+    result = query_services.get_allocations(order_id, uow)
+    if not result:
+        return "not found", 404
+    return jsonify(result), 200
+
 
 # cd src
 # export FLASK_APP=allocation/interfaces/rest/api.py
