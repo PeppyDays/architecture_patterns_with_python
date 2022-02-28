@@ -16,9 +16,6 @@ from allocation.infrastructure.repositories.repositories import ProductFakeRepos
 from allocation.infrastructure.repositories.repositories import ProductSqlAlchemyRepository
 
 
-
-
-
 class UnitOfWork(ABC):
     @abstractmethod
     def __enter__(self):
