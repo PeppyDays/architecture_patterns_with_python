@@ -47,10 +47,6 @@ def change_batch_quantity(command: commands.ChangeBatchQuantity, uow: ProductUni
 def add_allocation_view(command: commands.AddAllocationView, uow: AllocationViewUnitOfWork):
     with uow:
         uow.allocations_view.add(
-            AllocationView(
-                order_id=command.order_id,
-                sku=command.sku,
-                batch_ref=command.batch_ref
-            )
+            AllocationView(order_id=command.order_id, sku=command.sku, batch_ref=command.batch_ref)
         )
         uow.commit()
